@@ -1,11 +1,11 @@
 # ScreenLink
 
-**Let Claude Code or Codex troubleshoot a client's system through a Microsoft Teams remote-control session, with nothing installed on the client.**
+**Let Claude Code or Codex troubleshoot a client's system through a remote-control window, with no ScreenLink installation on the client.**
 
-ScreenLink is a small MCP server that runs on the **engineer's Windows PC**. When a client shares their screen in Teams and gives you control, ScreenLink lets the AI:
+ScreenLink is a small MCP server that runs on the **engineer's Windows PC**. When a client shares their screen through a remote tool and gives you keyboard and mouse control, ScreenLink lets the AI:
 
 - **read** the client's screen as text, using the Windows built-in OCR on your PC;
-- **type** commands as real key presses through the Teams window;
+- **type** commands as real key presses through the attached remote-session window;
 - **run** a command and get back only its output, in about 3–8 seconds.
 
 It's much faster than screenshot-based "computer use": the AI gets **text**, not images, and everything heavy (capture, OCR, change detection) happens locally.
@@ -39,8 +39,8 @@ It's much faster than screenshot-based "computer use": the AI gets **text**, not
 ## Build
 
 ```powershell
-git clone https://github.com/<your-org>/screenlink.git
-cd screenlink
+git clone https://github.com/dhn0x/AI.git
+cd AI/screenlink
 go test .
 go build -o screenlink.exe .
 .\screenlink.exe version
@@ -61,6 +61,27 @@ So the tools aren't blocked in auto mode, add an allow rule with `/permissions`:
 [mcp_servers.screenlink]
 command = 'C:\path\to\screenlink.exe'
 ```
+
+## Remote tools and screen sharing
+
+ScreenLink attaches to a visible window on your Windows PC; it does not require a Teams-specific integration. Remote tools such as **Microsoft Teams, AnyDesk, TeamViewer, RustDesk, RDP, and browser-based remote sessions** are candidates, provided their viewer forwards keyboard and mouse input to the remote computer.
+
+**Screen sharing alone allows viewing, not control.** The remote tool must grant keyboard and mouse control before Claude can click, type, or run commands. The client still needs the remote tool or session required to share their desktop, but does not need ScreenLink installed.
+
+Claude Code (or Codex) and ScreenLink run on the engineer's Windows PC and communicate through the local MCP connection configured above. After attaching to the remote-session window, the AI can read visible text with OCR, click, type text, and enter commands in a visible terminal. This setup does not give a cloud chat direct access to your desktop.
+
+Compatibility depends on the viewer's screen capture, focus, input forwarding, permissions, and privilege level. **The listed tools are not a verified compatibility list:** test each viewer on a harmless task before using it for client work. ScreenLink's stop switch and command approval checks still apply.
+
+### General connection steps
+
+1. Open the remote session and have the client grant keyboard and mouse control.
+2. Keep the remote-session window visible on your Windows PC.
+3. Ask Claude to use `list_windows`, then `attach` to that viewer window and `read` the screen.
+4. Have Claude `click` into the remote terminal or text field before typing. For a first terminal check, run `hostname` and verify the visible result.
+
+Example prompt:
+
+> Use ScreenLink: list the windows, attach to my AnyDesk remote-session window, read the screen, and tell me what you see. Click into the remote terminal, then run `hostname`. Stop if control is unavailable or ScreenLink reports SAFETY STOP. Never type passwords.
 
 ## Using it in a Teams meeting
 
@@ -113,7 +134,7 @@ ScreenLink is built for working on **client production systems**.
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `SCREENLINK_KEY_GAP_MS` | `35` | Pause between typed keys. Raise it if keys get lost on a slow Teams link. |
+| `SCREENLINK_KEY_GAP_MS` | `35` | Pause between typed keys. Raise it if keys get lost on a slow remote connection. |
 | `SCREENLINK_OCR_SCALE` | `2` | Upscaling before OCR. Try `3` for tiny fonts. |
 
 ## Limits
@@ -123,7 +144,7 @@ ScreenLink is built for working on **client production systems**.
 - Terminal prompts with icons or powerline glyphs read badly. Plain server prompts read well.
 - Teams doesn't pass the clipboard through. If the shared picture freezes, ScreenLink waits.
 - **It can't stop the client from using their PC.** The checks prevent wrong commands from running, but stray letters can land in the client's window if they keep working.
-- Windows only (engineer side). The client side can be any OS that Teams can share.
+- Windows only (engineer side). The client side can be any OS supported by the chosen remote tool.
 
 ## Project layout
 
