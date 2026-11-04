@@ -98,6 +98,29 @@ Ready-made prompts, including a full FortiSOAR health and licence check, are in 
 
 To see which windows ScreenLink can see, run `screenlink.exe windows`.
 
+## Skill for Claude Code and Codex (`skill/screenlink-remote`)
+
+The skill teaches the AI the whole workflow, so you don't have to paste long prompts:
+- which window to attach to for each remote tool (Teams, Zoom, Webex, AnyDesk, TeamViewer, RDP, Citrix, VMware, Hyper-V, VirtualBox and others);
+- the safety rules;
+- read-only check lists for FortiSOAR (including the licence), Linux, SIEM and collectors, and Windows;
+- an Excel report generator (`scripts/health_report.py`, needs `pip install openpyxl`).
+
+**Install for Claude Code** (for you only, all projects):
+```powershell
+Copy-Item -Recurse .\skill\screenlink-remote "$env:USERPROFILE\.claude\skills\"
+```
+For one project only, copy it to `<project>\.claude\skills\` instead.
+
+**Install for Codex:**
+```powershell
+Copy-Item -Recurse .\skill\screenlink-remote "$env:USERPROFILE\.codex\skills\"
+```
+If your Codex version doesn't load skills, paste the content of `SKILL.md` into your `AGENTS.md`.
+
+Restart Claude Code or Codex. Then just say, for example:
+> I have AnyDesk control of the client's FortiSOAR server. Run the health check including the licence and give me an Excel report.
+
 ## Tools
 
 | Tool | What it does |
@@ -155,3 +178,4 @@ ScreenLink is built for working on **client production systems**.
 | `ocr.go` | Windows OCR worker (PowerShell + `Windows.Media.Ocr`), row rebuilding. |
 | `win.go` | Win32: window capture, keyboard and mouse input, kill switch, banner. |
 | `match_test.go` | Tests for the "is the typed command really on screen" check. |
+| `skill/screenlink-remote/` | Skill for Claude Code and Codex: workflow, remote-tool notes, check lists, Excel report script. |
